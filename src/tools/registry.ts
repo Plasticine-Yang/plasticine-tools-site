@@ -1,23 +1,27 @@
 import type { ComponentType } from 'react'
 import DomainReplacer from './domain-replacer/DomainReplacer'
 
+export type ToolProps = {
+  /** Position in the registry, used for the 01/02/... folio numbering. */
+  index: number
+}
+
 export type Tool = {
   id: string
   name: string
   description: string
-  icon: string
-  component: ComponentType
+  component: ComponentType<ToolProps>
 }
 
 /**
- * Register new tools here. The sidebar and routing are generated from this list.
+ * Register new tools here. The sidebar and routing are generated from this list,
+ * and the sidebar index (01, 02, ...) follows the array order.
  */
 export const tools: Tool[] = [
   {
     id: 'domain-replacer',
     name: '域名替换',
-    description: '把链接中的 IP:端口 批量替换为配置的基准域名',
-    icon: '🔗',
+    description: '批量替换链接来源，保留路径与参数',
     component: DomainReplacer,
   },
 ]

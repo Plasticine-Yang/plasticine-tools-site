@@ -26,4 +26,14 @@ pnpm preview
 
 ## 新增工具
 
-在 `src/tools/registry.ts` 的 `tools` 数组里注册即可，侧边栏和路由会自动生成。
+在 `src/tools/registry.ts` 的 `tools` 数组里注册即可，侧边栏和路由会自动生成，侧边栏编号（01、02…）按数组顺序生成。
+
+工具组件会收到 `index: number`（数组下标），可用于页头的档案编号，例如 `实用程序 · Nº {formatToolIndex(index)}`。
+
+页面视觉遵循 `Atelier Zero`：暖纸底 + 墨色排版，珊瑚色仅用于当前状态与主要动作。全站样式集中在 `src/styles.css`，令牌见文件顶部的 `:root`。
+
+## 交互约定
+
+- 工具用 `useLocalStorage` 持久化设置时，页头右上角会自动提示「设置已在本地保存」。
+- 区块入场动效使用 `data-reveal`，由 `useReveal` 统一驱动，并遵循 `prefers-reduced-motion`。
+

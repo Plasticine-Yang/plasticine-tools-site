@@ -1,6 +1,12 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 const STORAGE_PREFIX = 'plasticine-tools:'
+
+/**
+ * Fired whenever a persisted value is written, so the workspace can show that
+ * settings are being saved locally without every tool wiring up its own status.
+ */
+export const SAVED_EVENT = 'plasticine-tools:saved'
 
 function readStorage<T>(key: string, fallback: T): T {
   if (typeof window === 'undefined') return fallback
@@ -19,13 +25,22 @@ function readStorage<T>(key: string, fallback: T): T {
  */
 export function useLocalStorage<T>(key: string, initialValue: T) {
   const [value, setValue] = useState<T>(() => readStorage(key, initialValue))
+  const lastWritten = useRef<string | null>(null)
 
   useEffect(() => {
+    const serialized = JSON.stringify(value)
     try {
-      window.localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(value))
+      window.localStorage.setItem(STORAGE_PREFIX + key, serialized)
     } catch {
       // Storage can be unavailable (private mode, quota). Ignore silently.
     }
+
+    // The first run only mirrors the restored value, and re-writing the same
+    // payload is not a save either — so neither should pulse the status.
+    const previous = lastWritten.current
+    lastWritten.current = serialized
+    if (previous === null || previous === serialized) return
+    window.dispatchEvent(new Event(SAVED_EVENT))
   }, [key, value])
 
   // Keep multiple tabs in sync.
