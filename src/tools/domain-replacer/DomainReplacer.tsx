@@ -35,7 +35,7 @@ export default function DomainReplacer(_props: ToolProps) {
               <h1 className="card-title">域名替换</h1>
               <p className="card-sub">把链接里的 IP 与端口换成域名，路径、参数和锚点原样保留</p>
             </div>
-            <span className="chip">{lineCount ? `${lineCount} 条待处理` : '等待输入'}</span>
+            <span className="chip">{lineCount ? `${lineCount} 条链接` : '等待输入'}</span>
           </header>
           <div className="card-body">
             <textarea

@@ -99,8 +99,10 @@
   --jse-modal-background: var(--card);
   --jse-overlay-background: rgba(30, 32, 40, 0.28);
   --jse-modal-code-background: var(--well);
-  --jse-modal-editor-theme-color: var(--ink-2);
-  --jse-modal-editor-theme-color-highlight: var(--ink);
+  /* The modal's inline editor paints its menu bar with the theme color, so it
+     stays transparent and the toolbar reads as part of the modal surface. */
+  --jse-modal-editor-theme-color: transparent;
+  --jse-modal-editor-theme-color-highlight: rgba(29, 29, 31, 0.06);
   --jse-input-background: #fff;
   --jse-input-border: 1px solid var(--hair-strong);
   --jse-input-border-focus: 1px solid var(--ink-2);
@@ -298,7 +300,7 @@ textarea {
 
 .segmented-sm .segmented-option {
   height: 28px;
-  padding: 0 14px;
+  padding: 0 12px;
   font-size: 13px;
 }
 
@@ -360,6 +362,13 @@ textarea {
   background: #111113;
 }
 
+.btn-primary:disabled {
+  opacity: 1;
+  background: rgba(29, 29, 31, 0.07);
+  color: var(--ink-4);
+  box-shadow: none;
+}
+
 .btn-sm {
   height: 30px;
   padding: 0 14px;
@@ -369,14 +378,25 @@ textarea {
 .chip {
   display: inline-flex;
   align-items: center;
+  gap: 6px;
   height: 26px;
-  padding: 0 12px;
+  padding: 0 11px;
   border-radius: var(--radius-ctl);
-  background: var(--primary);
-  color: #fff;
+  background: rgba(29, 29, 31, 0.06);
+  color: var(--ink-2);
   font-size: 12.5px;
   font-weight: 500;
   white-space: nowrap;
+}
+
+.chip::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.5;
 }
 
 .icon {
@@ -428,7 +448,7 @@ textarea {
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  padding: 22px 24px 0;
+  padding: 22px 24px 18px;
 }
 
 .card-title {
@@ -446,7 +466,7 @@ textarea {
 }
 
 .card-body {
-  padding: 16px 24px 24px;
+  padding: 0 24px 24px;
 }
 
 .card-foot {
@@ -603,7 +623,7 @@ textarea {
 
 .doc-head {
   flex: none;
-  padding: 14px 14px 14px 22px;
+  padding: 12px 12px 12px 22px;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -614,13 +634,16 @@ textarea {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   min-width: 0;
 }
 
 .doc-name {
   flex: 0 1 auto;
-  width: 100%;
+  /* The name field is invisible until hovered, so it must hug its text: a
+     stretched input pushes the validity chip away from the title. */
+  width: auto;
+  field-sizing: content;
   max-width: 220px;
   min-width: 60px;
   height: 32px;
@@ -654,7 +677,7 @@ textarea {
   align-items: center;
   gap: 6px;
   height: 26px;
-  padding: 0 12px;
+  padding: 0 10px;
   border-radius: var(--radius-ctl);
   background: rgba(29, 29, 31, 0.06);
   font-size: 12.5px;
@@ -683,18 +706,23 @@ textarea {
 }
 
 .status-diff {
-  color: #fff;
-  background: var(--primary);
+  color: #7a5a06;
+  background: rgba(212, 165, 20, 0.18);
 }
 
 .doc-tools {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 1px;
+}
+
+.doc-tools .icon-btn {
+  width: 30px;
+  height: 30px;
 }
 
 .doc-tools-gap {
-  width: 8px;
+  width: 6px;
 }
 
 .doc-body {
@@ -721,7 +749,7 @@ textarea {
 
 .json-panel-editor .jse-menu .jse-button {
   border-radius: 9px !important;
-  color: var(--ink-3) !important;
+  color: var(--ink-2) !important;
   transition:
     background 160ms,
     color 160ms;
@@ -782,28 +810,427 @@ textarea {
   padding: 4px 14px !important;
 }
 
+/* 修复提示条里的「Ok / 手动修复」在库里都带 primary 类，
+   结果两个按钮长得一样重；把第一个恢复成真正的主动作。 */
+.json-panel-editor .jse-message .jse-actions button {
+  background: rgba(255, 255, 255, 0.72) !important;
+  color: #1d5c39 !important;
+  box-shadow: inset 0 0 0 1px rgba(29, 92, 57, 0.16);
+  transition:
+    background 160ms,
+    box-shadow 160ms;
+}
+
+.json-panel-editor .jse-message .jse-actions button:first-child {
+  background: var(--primary) !important;
+  color: #fff !important;
+  box-shadow: none;
+}
+
+.json-panel-editor .jse-message .jse-actions button:hover {
+  background: rgba(255, 255, 255, 0.95) !important;
+}
+
+.json-panel-editor .jse-message .jse-actions button:first-child:hover {
+  background: #000 !important;
+}
+
 .json-panel-editor .jse-navigation-bar {
   padding: 0 10px;
   border-bottom: 1px solid var(--hair);
   font-size: 12.5px;
 }
 
-/* 弹层：右键菜单、下拉、模态框 */
-.jse-contextmenu {
-  border-radius: 16px;
+body .json-panel-editor .jse-navigation-bar-path-editor {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  height: 32px;
+  margin-right: 6px;
+  padding: 0 4px 0 10px;
+  border: 1px solid var(--hair-strong) !important;
+  border-radius: 10px;
+  background: var(--card-raised);
+  transition:
+    border-color 160ms,
+    box-shadow 160ms;
+}
+
+body .json-panel-editor .jse-navigation-bar-path-editor:focus-within {
+  border-color: rgba(29, 29, 31, 0.35) !important;
+  box-shadow: 0 0 0 3px rgba(29, 29, 31, 0.06);
+}
+
+body .json-panel-editor .jse-navigation-bar-path-editor.error {
+  border-color: var(--err) !important;
+}
+
+body .json-panel-editor .jse-navigation-bar-path-editor input.jse-navigation-bar-text {
+  flex: 1;
+  min-width: 0;
+  height: 30px;
+  padding: 0 !important;
+  border: 0;
+  background: transparent !important;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--ink) !important;
+}
+
+body .json-panel-editor .jse-navigation-bar-path-editor button {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition:
+    background 160ms,
+    color 160ms;
+}
+
+body .json-panel-editor .jse-navigation-bar-path-editor button:hover {
+  background: rgba(29, 29, 31, 0.06);
+  color: var(--ink);
+}
+
+body .json-panel-editor .jse-navigation-bar-path-editor button svg {
+  width: 14px;
+  height: 14px;
+}
+
+body .json-panel-editor .jse-navigation-bar-edit {
+  flex: 0 0 30px !important;
+  width: 30px;
+  height: 30px;
+  margin-left: auto;
+  padding: 0 !important;
+  display: grid !important;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--ink-3) !important;
+  background: transparent !important;
+  transition:
+    background 160ms,
+    color 160ms;
+}
+
+body .json-panel-editor .jse-navigation-bar-edit .jse-navigation-bar-space {
+  display: none;
+}
+
+body .json-panel-editor .jse-navigation-bar-edit:hover,
+body .json-panel-editor .jse-navigation-bar-edit.editing {
+  background: rgba(29, 29, 31, 0.06) !important;
+  color: var(--ink) !important;
+}
+
+body .json-panel-editor .jse-navigation-bar-edit svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* 搜索面板：库自带的是 3px 直角 + 浏览器默认控件，改成和站点一致的浮层。 */
+div.jse-search-box {
+  border: 1px solid var(--hair-strong) !important;
+  border-radius: 14px !important;
+  background: #fff !important;
   overflow: hidden;
-  padding: 6px;
-  font-size: 13.5px !important;
 }
 
-.jse-contextmenu .jse-context-menu-button,
-.jse-contextmenu button {
+div.jse-search-box .jse-search-form {
+  align-items: center;
+  gap: 2px;
+}
+
+div.jse-search-box .jse-replace-toggle {
+  flex: none;
+  width: 26px;
+  height: 30px;
+  margin-left: 6px;
+  padding: 0 !important;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: rgba(29, 29, 31, 0.06) !important;
+  color: var(--ink-3) !important;
+  transition:
+    background 160ms,
+    color 160ms;
+}
+
+div.jse-search-box .jse-replace-toggle:hover {
+  background: rgba(29, 29, 31, 0.09) !important;
+  color: var(--ink) !important;
+}
+
+div.jse-search-box .jse-search-icon {
+  color: var(--ink-4);
+}
+
+div.jse-search-box .jse-search-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+div.jse-search-box input.jse-search-input,
+div.jse-search-box input.jse-replace-input {
+  height: 30px !important;
+  padding: 0 10px !important;
+  border: 1px solid transparent !important;
   border-radius: 9px !important;
+  background: var(--well) !important;
+  font-family: var(--sans) !important;
+  font-size: 13px !important;
+  color: var(--ink) !important;
+  transition:
+    background 160ms,
+    border-color 160ms,
+    box-shadow 160ms;
 }
 
-.jse-contextmenu button:focus-visible {
+div.jse-search-box input.jse-search-input::placeholder,
+div.jse-search-box input.jse-replace-input::placeholder {
+  color: var(--ink-4);
+}
+
+div.jse-search-box input.jse-search-input:focus,
+div.jse-search-box input.jse-replace-input:focus {
+  outline: none;
+  border-color: var(--hair-strong) !important;
+  background: #fff !important;
+  box-shadow: 0 0 0 3px rgba(29, 29, 31, 0.06);
+}
+
+div.jse-search-box .jse-search-count {
+  padding: 0 4px;
+  font-size: 11.5px;
+  color: var(--ink-4);
+  font-variant-numeric: tabular-nums;
+}
+
+div.jse-search-box .jse-search-next,
+div.jse-search-box .jse-search-previous,
+div.jse-search-box .jse-search-clear {
+  width: 26px;
+  height: 26px;
+  padding: 0 !important;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ink-3) !important;
+  transition:
+    background 160ms,
+    color 160ms;
+}
+
+div.jse-search-box .jse-search-next:hover:not(:disabled),
+div.jse-search-box .jse-search-previous:hover:not(:disabled),
+div.jse-search-box .jse-search-clear:hover {
+  background: rgba(29, 29, 31, 0.06);
+  color: var(--ink) !important;
+}
+
+div.jse-search-box .jse-search-next:disabled,
+div.jse-search-box .jse-search-previous:disabled {
+  color: var(--ink-4) !important;
+  opacity: 0.55;
+}
+
+div.jse-search-box .jse-search-next svg,
+div.jse-search-box .jse-search-previous svg {
+  width: 12px;
+  height: 12px;
+}
+
+div.jse-search-box .jse-search-clear svg {
+  width: 11px;
+  height: 11px;
+}
+
+div.jse-search-box .jse-replace-section {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-top: 4px;
+}
+
+div.jse-search-box .jse-replace-section > button {
+  height: 30px;
+  padding: 0 10px !important;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  font-family: var(--sans);
+  font-size: 12.5px !important;
+  color: var(--ink-3) !important;
+  white-space: nowrap;
+  transition:
+    background 160ms,
+    color 160ms;
+}
+
+div.jse-search-box .jse-replace-section > button:hover:not(:disabled) {
+  background: rgba(29, 29, 31, 0.06);
+  color: var(--ink) !important;
+}
+
+/* 弹层：右键菜单、下拉、模态框。注意 `.jse-contextmenu` 也是编辑器工具条
+   上一个按钮的类名，菜单容器必须带上 role=menu 才不会误伤那个按钮。 */
+div.jse-contextmenu[role='menu'] {
+  border-radius: 14px;
+  overflow: visible;
+  padding: 6px;
+  min-width: 306px;
+  background: #fff;
+  font-size: 13px !important;
+  box-shadow: var(--shadow-pop);
+}
+
+body .jse-contextmenu .jse-row {
+  align-items: stretch;
+  gap: 2px;
+}
+
+body .jse-contextmenu .jse-row > button,
+body .jse-contextmenu .jse-row > .jse-dropdown-button {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+body .jse-contextmenu .jse-separator {
+  height: 1px;
+  margin: 6px 8px !important;
+  background: var(--hair) !important;
+}
+
+.jse-contextmenu button.jse-context-menu-button,
+body .jse-contextmenu .jse-dropdown-button > button.jse-context-menu-button,
+body .jse-contextmenu .jse-dropdown-items button,
+body .jse-contextmenu .jse-dropdown-button .jse-open-dropdown {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 9px;
+  height: 34px;
+  min-width: 0;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+body .jse-contextmenu .jse-context-menu-button > svg,
+body .jse-contextmenu .jse-dropdown-items button > svg {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  opacity: 0.72;
+}
+
+body .jse-contextmenu .jse-dropdown-button {
+  display: flex;
+  gap: 2px;
+  min-width: 0;
+}
+
+body .jse-contextmenu .jse-dropdown-button .jse-open-dropdown {
+  width: 26px;
+  min-width: 26px;
+  padding: 0;
+  justify-content: center;
+  gap: 0;
+  margin-left: auto;
+  opacity: 0.7;
+}
+
+body .jse-contextmenu .jse-open-dropdown svg {
+  width: 10px;
+  height: 12px;
+}
+
+.jse-contextmenu button.jse-context-menu-button:hover:not(:disabled),
+body .jse-contextmenu .jse-dropdown-items button:hover:not(:disabled),
+body .jse-contextmenu .jse-dropdown-button .jse-open-dropdown:hover:not(:disabled) {
+  background: var(--jse-context-menu-background-highlight, #f0f1f3) !important;
+  color: var(--ink);
+  outline: none;
+}
+
+.jse-contextmenu button.jse-context-menu-button:focus-visible,
+body .jse-contextmenu .jse-dropdown-items button:focus-visible,
+body .jse-contextmenu .jse-dropdown-button .jse-open-dropdown:focus-visible {
+  background: transparent !important;
   outline: none !important;
-  background: var(--jse-context-menu-background-highlight) !important;
+  box-shadow: inset 0 0 0 1.5px rgba(29, 29, 31, 0.4);
+}
+
+.jse-contextmenu button:disabled {
+  color: var(--ink-4) !important;
+  opacity: 1;
+}
+
+.jse-contextmenu button:disabled svg {
+  opacity: 0.55;
+}
+
+body .jse-contextmenu .jse-row .jse-label {
+  padding: 4px 10px 5px;
+  font-family: var(--sans);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--ink-4);
+  line-height: 1.35;
+}
+
+body .jse-contextmenu .jse-column {
+  gap: 2px;
+}
+
+body .jse-contextmenu .jse-column:not(:last-child) {
+  padding-right: 4px;
+  border-right: 1px solid var(--hair);
+}
+
+body .jse-contextmenu .jse-column:last-child {
+  padding-left: 4px;
+}
+
+.jse-dropdown-items,
+.jse-navigation-bar-dropdown {
+  border-radius: 12px !important;
+  box-shadow: var(--shadow-pop) !important;
+  background: #fff !important;
+  color: var(--ink) !important;
+  padding: 6px;
+  width: auto !important;
+  min-width: 188px;
+  overflow: hidden;
+}
+
+.jse-dropdown-items {
+  top: calc(100% + 4px) !important;
+  left: 0 !important;
+}
+
+body .jse-contextmenu .jse-dropdown-items ul,
+body .jse-contextmenu .jse-dropdown-items li {
+  margin: 0;
+  padding: 0;
 }
 
 .jse-contextmenu .jse-tip {
@@ -811,36 +1238,107 @@ textarea {
   margin-top: 4px;
 }
 
-.jse-dropdown-items,
-.jse-navigation-bar-dropdown {
-  border-radius: 12px !important;
-  box-shadow: var(--shadow-pop) !important;
-  overflow: hidden;
-}
-
 dialog.jse-modal {
   border-radius: 22px !important;
   box-shadow: var(--shadow-pop) !important;
   overflow: hidden !important;
+  max-width: calc(100vw - 40px);
+  max-height: calc(100vh - 40px);
 }
 
-dialog.jse-modal .jse-header {
+/* `.jse-header` 同时也是树节点行的类名，模态框的头部样式必须直接指向弹窗头部。
+   Edit object / Repair 这两个弹窗会把头部包一层 `.jse-modal-wrapper`。 */
+dialog.jse-modal .jse-modal-inner > .jse-header,
+dialog.jse-modal .jse-modal-inner > [class*='-modal-inner'] > .jse-header,
+dialog.jse-modal .jse-modal-inner > .jse-modal-wrapper > .jse-header {
   background: transparent !important;
   color: var(--ink) !important;
-  padding: 12px 12px 4px 22px !important;
+  border-bottom: 1px solid var(--hair);
+  padding: 12px 12px 10px 22px !important;
   font-size: 16px;
   font-weight: 600;
 }
 
-dialog.jse-modal .jse-header button {
+dialog.jse-modal .jse-modal-inner > .jse-header > button,
+dialog.jse-modal .jse-modal-inner > [class*='-modal-inner'] > .jse-header > button,
+dialog.jse-modal .jse-modal-inner > .jse-modal-wrapper > .jse-header > button {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
   color: var(--ink-3) !important;
   border-radius: 50% !important;
+  transition:
+    background 160ms,
+    color 160ms;
+}
+
+dialog.jse-modal .jse-modal-inner > .jse-header > button:hover,
+dialog.jse-modal .jse-modal-inner > [class*='-modal-inner'] > .jse-header > button:hover,
+dialog.jse-modal .jse-modal-inner > .jse-modal-wrapper > .jse-header > button:hover {
+  background: rgba(29, 29, 31, 0.06);
+  color: var(--ink) !important;
+}
+
+dialog.jse-modal .jse-modal-contents {
+  padding: 0 22px 20px !important;
+}
+
+/* 排序弹窗用 200px 的占位撑高度，两个字段的弹窗会因此空出一大片。 */
+dialog.jse-modal .jse-modal-contents > .jse-space {
+  display: none !important;
+}
+
+dialog.jse-modal .jse-modal-contents > table {
+  margin-top: 10px;
+}
+
+dialog.jse-modal .jse-modal-contents .jse-label-inner {
+  margin-top: 16px !important;
+  margin-bottom: 6px !important;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--ink-2);
+}
+
+/* 「Wizard」「Original」这类可折叠标题在库里是 14px/700 的按钮，
+   和同一列的字段标签不一致；压回 12.5px/600，只保留三角作为层级提示。
+   库里这两项带 !important，这里必须同样加重才能盖住。 */
+dialog.jse-modal .jse-label-inner > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-family: var(--sans);
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+  color: var(--ink-2);
+}
+
+dialog.jse-modal .jse-label-inner > button svg {
+  width: 8px;
+  height: 12px;
+  opacity: 0.55;
 }
 
 dialog.jse-modal .jse-primary,
 dialog.jse-modal button.jse-primary {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
   border-radius: var(--radius-ctl) !important;
-  padding: 8px 22px !important;
+  padding: 0 22px !important;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+dialog.jse-modal .jse-actions {
+  padding-top: 14px !important;
 }
 
 dialog.jse-modal p {
@@ -855,15 +1353,90 @@ dialog.jse-modal input[type='text'] {
   background: #fff !important;
 }
 
+/* svelte-select 内部也有一个透明输入框，不能被上面的输入框样式盖住选中值。 */
+dialog.jse-modal .svelte-select input {
+  height: auto !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+dialog.jse-modal .svelte-select .selected-item {
+  color: var(--ink) !important;
+}
+
+dialog.jse-modal input.jse-path {
+  height: 40px;
+  border-color: transparent !important;
+  border-radius: 10px !important;
+  background: var(--well) !important;
+  box-shadow: inset 0 0 0 1px var(--hair);
+  padding: 0 12px !important;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--ink-2);
+  transition:
+    border-color 160ms,
+    box-shadow 160ms;
+}
+
+dialog.jse-modal input.jse-path:focus {
+  border-color: var(--hair-strong) !important;
+  box-shadow: 0 0 0 3px rgba(29, 29, 31, 0.06);
+}
+
+/* The nested editor gets its own framed well so toolbar and content read as one field. */
+dialog.jse-modal .jse-modal-inline-editor {
+  border: 1px solid var(--hair-strong);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+}
+
+dialog.jse-modal .jse-modal-inline-editor .jse-menu {
+  padding: 5px 8px;
+  gap: 2px;
+  background: transparent !important;
+  border-bottom: 1px solid var(--hair);
+}
+
+dialog.jse-modal .jse-modal-inline-editor .jse-menu .jse-button {
+  border-radius: 8px !important;
+  color: var(--ink-2) !important;
+}
+
+dialog.jse-modal .jse-modal-inline-editor .jse-menu .jse-button:hover:not(:disabled),
+dialog.jse-modal .jse-modal-inline-editor .jse-menu .jse-button:focus-visible {
+  background: rgba(29, 29, 31, 0.06) !important;
+  color: var(--ink) !important;
+}
+
+dialog.jse-modal .jse-modal-inline-editor .jse-menu .jse-button:disabled {
+  color: var(--ink-4) !important;
+  opacity: 0.55;
+}
+
+dialog.jse-modal .jse-modal-inline-editor .jse-menu .jse-separator {
+  background: var(--hair-strong) !important;
+  margin: 8px 6px !important;
+  width: 1px !important;
+}
+
 dialog.jse-modal::backdrop {
   backdrop-filter: blur(3px);
 }
 
 /* 树视图里的 “2 items” 标签 */
-.json-panel-editor .jse-tag {
+.json-panel-editor .jse-tag,
+dialog.jse-modal .jse-tag {
+  width: auto !important;
   color: var(--ink-2) !important;
   border-radius: 6px !important;
   padding: 0 6px !important;
+  white-space: nowrap;
+  line-height: 18px;
 }
 
 /* 差异标记 */
@@ -1046,7 +1619,7 @@ dialog.jse-modal::backdrop {
 }
 
 .result-list {
-  margin-top: 16px;
+  margin-top: 0;
   border-top: 1px solid var(--hair);
 }
 
@@ -1295,6 +1868,14 @@ dialog.jse-modal::backdrop {
   color: var(--ink-2);
   cursor: pointer;
   white-space: nowrap;
+}
+
+/* 两个勾选项作为一个整体换行，避免窄屏只剩一个选项孤零零落到第二行。 */
+.dd-checks {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: none;
 }
 
 .dd-check input {
@@ -1547,9 +2128,12 @@ dialog.jse-modal::backdrop {
 
 .dv-fold {
   display: block;
-  width: 100%;
-  height: 24px;
+  width: calc(100% - 12px);
+  height: 22px;
+  margin: 2px 6px;
+  padding-right: 8px;
   border: 0;
+  border-radius: 8px;
   background: transparent;
   text-align: left;
   font-family: var(--sans);
@@ -1792,6 +2376,24 @@ dialog.jse-modal::backdrop {
 }
 
 /* ---------- 窄屏 ---------- */
+
+/* 双栏编辑器在 1280 以下的屏幕放不下「名称 + 状态 + 视图 + 文件操作」一行，
+   让工具行落到第二行，避免文档名被压成两三个字。 */
+@media (max-width: 1279px) {
+  .doc-head {
+    flex-wrap: wrap;
+    row-gap: 8px;
+    padding-bottom: 12px;
+  }
+
+  .doc-title {
+    flex: 1 1 100%;
+  }
+
+  .doc-tools {
+    margin-left: auto;
+  }
+}
 
 @media (max-width: 900px) {
   .app-workspace {

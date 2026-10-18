@@ -461,18 +461,20 @@ export default function JsonDiffTool() {
                 spellCheck={false}
               />
             )}
-            <label className="dd-check">
-              <input
-                type="checkbox"
-                checked={options.loose}
-                onChange={(event) => setOptions({ ...options, loose: event.target.checked })}
-              />
-              1 与 "1" 视为相同
-            </label>
-            <label className="dd-check">
-              <input type="checkbox" checked={onlyDiff} onChange={(event) => setOnlyDiff(event.target.checked)} />
-              折叠相同内容
-            </label>
+            <div className="dd-checks">
+              <label className="dd-check">
+                <input
+                  type="checkbox"
+                  checked={options.loose}
+                  onChange={(event) => setOptions({ ...options, loose: event.target.checked })}
+                />
+                1 与 "1" 视为相同
+              </label>
+              <label className="dd-check">
+                <input type="checkbox" checked={onlyDiff} onChange={(event) => setOnlyDiff(event.target.checked)} />
+                折叠相同内容
+              </label>
+            </div>
           </div>
 
           <div className="dd-nav">
