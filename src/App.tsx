@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import Segmented from './components/Segmented'
 import { fitJsonEditorMenus } from './lib/fitJsonEditorMenus'
+import { trackJsonEditorMenuKeyboard } from './lib/trackJsonEditorMenuKeyboard'
 import { tools } from './tools/registry'
 
 function getToolIdFromHash(): string {
@@ -17,7 +18,14 @@ export default function App() {
     return () => window.removeEventListener('hashchange', onHashChange)
   }, [])
 
-  useEffect(() => fitJsonEditorMenus(), [])
+  useEffect(() => {
+    const stopFitting = fitJsonEditorMenus()
+    const stopTrackingKeys = trackJsonEditorMenuKeyboard()
+    return () => {
+      stopFitting()
+      stopTrackingKeys()
+    }
+  }, [])
 
   const activeIndex = Math.max(
     0,

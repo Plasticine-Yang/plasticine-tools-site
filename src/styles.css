@@ -938,38 +938,46 @@ body .json-panel-editor .jse-navigation-bar-edit svg {
 /* 搜索面板：库自带的是 3px 直角 + 浏览器默认控件，改成和站点一致的浮层。 */
 div.jse-search-box {
   border: 1px solid var(--hair-strong) !important;
-  border-radius: 14px !important;
+  border-radius: 12px !important;
   background: #fff !important;
   overflow: hidden;
 }
 
 div.jse-search-box .jse-search-form {
   align-items: center;
-  gap: 2px;
+  gap: 4px;
+  padding: 5px 6px;
 }
 
+div.jse-search-box .jse-search-contents {
+  padding: 0 !important;
+  gap: 4px;
+}
+
+/* 左侧的替换开关在库里自带一块灰底，看起来像播放按钮；改成安静的图标按钮。 */
 div.jse-search-box .jse-replace-toggle {
   flex: none;
   width: 26px;
-  height: 30px;
-  margin-left: 6px;
+  height: 26px;
+  margin: 0;
   padding: 0 !important;
   display: grid;
   place-items: center;
-  border-radius: 8px;
-  background: rgba(29, 29, 31, 0.06) !important;
-  color: var(--ink-3) !important;
+  border-radius: 7px;
+  background: transparent !important;
+  color: var(--ink-4) !important;
   transition:
     background 160ms,
     color 160ms;
 }
 
 div.jse-search-box .jse-replace-toggle:hover {
-  background: rgba(29, 29, 31, 0.09) !important;
+  background: rgba(29, 29, 31, 0.06) !important;
   color: var(--ink) !important;
 }
 
 div.jse-search-box .jse-search-icon {
+  width: 24px !important;
   color: var(--ink-4);
 }
 
@@ -1059,6 +1067,7 @@ div.jse-search-box .jse-replace-section {
   align-items: center;
   gap: 2px;
   padding-top: 4px;
+  padding-left: 24px !important;
 }
 
 div.jse-search-box .jse-replace-section > button {
@@ -1170,12 +1179,21 @@ body .jse-contextmenu .jse-dropdown-button .jse-open-dropdown:hover:not(:disable
   outline: none;
 }
 
-.jse-contextmenu button.jse-context-menu-button:focus-visible,
-body .jse-contextmenu .jse-dropdown-items button:focus-visible,
-body .jse-contextmenu .jse-dropdown-button .jse-open-dropdown:focus-visible {
+/* 菜单打开时库会把焦点放到第一项；鼠标用户不该看到这一项像被 hover 一样。
+   只有真的用键盘在菜单里移动时，才显示焦点反馈。 */
+.jse-contextmenu button.jse-context-menu-button:focus,
+body .jse-contextmenu .jse-dropdown-items button:focus,
+body .jse-contextmenu .jse-dropdown-button .jse-open-dropdown:focus {
   background: transparent !important;
   outline: none !important;
-  box-shadow: inset 0 0 0 1.5px rgba(29, 29, 31, 0.4);
+  box-shadow: none !important;
+}
+
+.jse-contextmenu.is-keyboard button.jse-context-menu-button:focus,
+body .jse-contextmenu.is-keyboard .jse-dropdown-items button:focus,
+body .jse-contextmenu.is-keyboard .jse-dropdown-button .jse-open-dropdown:focus {
+  background: rgba(29, 29, 31, 0.06) !important;
+  box-shadow: inset 0 0 0 1.5px rgba(29, 29, 31, 0.35) !important;
 }
 
 .jse-contextmenu button:disabled {
