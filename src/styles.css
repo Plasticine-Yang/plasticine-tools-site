@@ -19,6 +19,8 @@
   --select-tint: rgba(64, 82, 108, 0.1);
   --select-tint-soft: rgba(64, 82, 108, 0.05);
   --select-line: rgba(64, 82, 108, 0.16);
+  /* hover 是选中的预演：同一种冷调，浓度只有选中的一半多。 */
+  --hover-tint: rgba(64, 82, 108, 0.055);
 
   --radius-card: 22px;
   --radius-ctl: 999px;
@@ -981,7 +983,13 @@ body .json-panel-editor .jse-navigation-bar-edit svg {
   height: 15px;
 }
 
-/* 树节点：折叠箭头按整行高度居中，悬停给一个轻量的圆角底。 */
+/* ===== 树视图 hover =====
+   北极星：悬停是点击落点的预演。
+   - 叶子键/值 → 一颗和选中同族的冷调圆角胶囊；
+   - 展开的对象/数组括号 → 一整块圆角薄雾，预示整块会被选中；
+   - 行尾空白 → 快速扫过不响应，停顿后线从左侧“生长”出来提示插入位置；
+   - 行尾加号 → 安静的发丝圆钮，不再是带阴影的悬浮控件。 */
+
 body .json-panel-editor .jse-expand {
   display: inline-flex;
   align-items: center;
@@ -989,15 +997,15 @@ body .json-panel-editor .jse-expand {
   height: var(--jse-line-height, 22px);
   line-height: 1;
   vertical-align: top;
-  border-radius: 5px;
+  border-radius: 6px;
   color: var(--ink-4);
   transition:
-    background 160ms,
-    color 160ms;
+    background-color 130ms var(--ease-out),
+    color 130ms var(--ease-out);
 }
 
 body .json-panel-editor .jse-expand:hover {
-  background: rgba(29, 29, 31, 0.06);
+  background: rgba(29, 29, 31, 0.05);
   color: var(--ink-2);
   opacity: 1;
 }
@@ -1006,38 +1014,112 @@ body .json-panel-editor .jse-expand svg {
   display: block;
 }
 
-/* 行尾动作：点击节点后，hover 整行会浮出一个圆形加号，点它打开节点操作
-   菜单。原来的下拉三角只有 17px，且和文字之间隔着 6px 空白，鼠标移过去
-   就离开 hover 区消失了；这里把按钮放大、右移到留白处，并用 ::after 向左
-   铺一条透明命中带，从文字移到按钮的途中不会断掉 hover。 */
+/* 库里默认的 hover 底色是一层铺在 key-outer / value-outer / meta / footer
+   上的直角灰块。树视图里全部撤掉，hover 视觉只由下面的 token 胶囊和
+   对象整块薄雾承担；文本、表格模式不受影响。 */
+body .json-panel-editor .jse-tree-mode {
+  --jse-hover-background-color: transparent;
+}
+
+/* 叶子键 / 值：token 本身变成冷调圆角胶囊。 */
+body .json-panel-editor .jse-key,
+body .json-panel-editor .jse-value {
+  border-radius: 5px;
+  background: transparent;
+  transition: background-color 120ms var(--ease-out);
+}
+
+/* 故意不用 body 前缀压特异性：让后面 diff 区块里
+   `.diff-changed/.diff-removed/.diff-added .jse-key|.jse-value`（同为 3 个类，
+   但定义更靠后）在差异行 hover 时仍能保住自己的差异底色。 */
+.json-panel-editor .jse-key-outer:hover > .jse-key,
+.json-panel-editor .jse-value-outer:hover > .jse-value {
+  background: var(--hover-tint);
+}
+
+/* 收起的对象/数组（`[ 34 items ]`、`{}`）：整段 meta 共用一颗胶囊；
+   展开的对象不在这里处理——悬停它的括号走下面的整块薄雾。
+   差异行（diff-changed/added/removed）已有整行状态色，不再叠加 hover。 */
+body .json-panel-editor .jse-json-node:not(:has(.jse-items, .jse-props)):not([class*='diff-']) .jse-meta-inner {
+  border-radius: 5px;
+  transition: background-color 120ms var(--ease-out);
+}
+
+body
+  .json-panel-editor
+  .jse-json-node:not(:has(.jse-items, .jse-props)):not([class*='diff-'])
+  .jse-meta:hover
+  .jse-meta-inner {
+  background: var(--hover-tint);
+}
+
+/* 展开的对象/数组：悬停括号时，用一整块圆角薄雾预示整块会被选中，
+   从折叠箭头列一直盖到闭合括号行；子行自己的胶囊压在上面，层级清楚。
+   只在节点处于展开（DOM 里有 .jse-items / .jse-props）、未选中、非差异行时出现。 */
+body
+  .json-panel-editor
+  .jse-json-node.jse-hovered:not(.jse-selected):not(.jse-selected-value):not([class*='diff-']):has(.jse-items, .jse-props) {
+  isolation: isolate;
+}
+
+body
+  .json-panel-editor
+  .jse-json-node.jse-hovered:not(.jse-selected):not(.jse-selected-value):not([class*='diff-']):has(.jse-items, .jse-props)::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--jse-indent-size, calc(1em + 4px)) - 22px);
+  right: 24px;
+  z-index: -1;
+  border-radius: 7px;
+  background: var(--hover-tint);
+}
+
+body .json-panel-editor .jse-json-node.jse-hovered:has(.jse-items, .jse-props) .jse-header .jse-meta {
+  color: var(--ink-3);
+}
+
+/* 选中态下 hover 不要再盖一层；库里本来就给了 inherit，这里兜底。
+   差异行同理：整行的黄/红/绿就是当前状态，hover 不引入第二套颜色。 */
+body .json-panel-editor .jse-json-node.jse-selected .jse-key-outer:hover > .jse-key,
+body .json-panel-editor .jse-json-node.jse-selected .jse-value-outer:hover > .jse-value,
+body .json-panel-editor .jse-json-node.jse-selected-value .jse-key-outer:hover > .jse-key,
+body .json-panel-editor .jse-json-node.jse-selected-value .jse-value-outer:hover > .jse-value,
+.json-panel-editor .jse-key-outer.jse-selected-key:hover > .jse-key,
+.json-panel-editor .jse-json-node[class*='diff-'] .jse-key-outer:hover > .jse-key,
+.json-panel-editor .jse-json-node[class*='diff-'] .jse-value-outer:hover > .jse-value {
+  background: transparent;
+}
+
+/* 行尾加号：打开节点操作菜单。收进 22px 行高，去掉阴影，只留一圈发丝边；
+   ::after 是文字与按钮之间 6px 的透明命中带，鼠标移过去途中不会断开 hover。 */
 body .json-panel-editor .jse-context-menu-pointer {
-  top: -1px;
-  right: -30px;
-  width: 24px;
-  height: 24px;
+  top: 0;
+  right: -28px;
+  width: 22px;
+  height: 22px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0;
   border: 0;
   border-radius: 50%;
-  background: var(--card-raised) !important;
-  box-shadow:
-    0 0 0 1px var(--hair-strong),
-    0 1px 2px rgba(30, 32, 40, 0.12) !important;
-  color: var(--ink-2);
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--ink-3);
   opacity: 0;
   pointer-events: none;
+  transform: scale(0.85);
   transition:
-    opacity 120ms,
-    background 120ms,
-    box-shadow 120ms,
-    color 120ms;
+    opacity 120ms var(--ease-out),
+    transform 120ms var(--ease-out),
+    background-color 120ms var(--ease-out),
+    box-shadow 120ms var(--ease-out),
+    color 120ms var(--ease-out);
 }
 
 body .json-panel-editor .jse-context-menu-pointer::after {
-  /* 只覆盖文字与按钮之间的 6px 空隙，不要压到值上，否则点击值末尾
-     会误触这个按钮。 */
   content: '';
   position: absolute;
   top: -4px;
@@ -1074,51 +1156,83 @@ body .json-panel-editor .jse-context-menu-pointer:hover,
 body .json-panel-editor .jse-context-menu-pointer:focus-visible {
   opacity: 1;
   pointer-events: auto;
+  transform: scale(1);
 }
 
 body .json-panel-editor .jse-context-menu-pointer:not(.jse-insert):hover {
-  background: var(--well) !important;
+  background: var(--card-raised) !important;
   color: var(--ink);
   box-shadow:
-    0 0 0 1px var(--ink-4),
-    0 2px 6px rgba(30, 32, 40, 0.16) !important;
+    0 0 0 1px var(--hair-strong),
+    0 1px 3px rgba(30, 32, 40, 0.12) !important;
 }
 
-/* 插入点：整条线只在 hover 时出现，用来提示“插入到这里”；点击整条线仍会
-   打开插入菜单，但不再在末端挂一个加号（加号只留给行尾的节点操作）。
-   选中插入点后库会把这条线常驻在 DOM 里，所以除 hover 外一律透明；
-   16px 高的透明命中带只在 hover 时接管鼠标，避免点击后残留的命中区
-   挡住其它行。 */
+body .json-panel-editor .jse-context-menu-pointer:not(.jse-insert):active {
+  background: var(--well) !important;
+  transform: scale(0.92);
+}
+
+/* 插入点：行尾空白是触发区。快速扫过树时不希望满屏都是线，所以加一道
+   停顿意图门——线用 150ms 延迟 + 从左向右的生长动画出现，离开则立刻
+   收起（基础规则里 transition 无延迟）。线本身 0 高度，可见的细线和命中
+   带都由 ::before 承担；点击命中带打开插入菜单的逻辑在 JsonPanel 里。 */
 body .json-panel-editor .jse-insert-area {
   max-width: none !important;
-  margin-right: 30px !important;
+  margin-right: 28px !important;
   z-index: 4;
-  outline-color: transparent !important;
+  outline: 0 !important;
 }
 
 body .json-panel-editor .jse-insert-area::before {
   content: '';
   position: absolute;
   top: -8px;
-  right: -8px;
-  left: -8px;
+  right: 0;
+  left: 0;
   height: 16px;
   cursor: pointer;
   pointer-events: none;
+  background-image: linear-gradient(
+    to right,
+    var(--select-line) 0,
+    var(--select-line) 62%,
+    transparent 96%
+  );
+  background-repeat: no-repeat;
+  background-position: left center;
+  background-size: 0 1px;
 }
 
-body .json-panel-editor .jse-insert-area.jse-selected {
-  outline-color: transparent !important;
-}
-
-/* 放在 .jse-selected 之后：点击后插入点同时带 hovered + selected，
-   仍然以 hover 为准显示这条线，鼠标离开后 selected 才生效。 */
-body .json-panel-editor .jse-insert-area.jse-hovered {
-  outline-color: var(--ink-4) !important;
-}
-
+/* 插入点节点在鼠标进入触发区时才被库挂进 DOM，且一挂进来就带 jse-hovered，
+   transition 不会在挂载时触发，所以用入场动画：150ms 停顿意图门之后，
+   线从左向右 200ms 长出；fill-mode: both 保证延迟期内保持 0 宽度不可见。
+   鼠标离开时节点直接卸载，线即时消失（离开比进入快）。 */
 body .json-panel-editor .jse-insert-area.jse-hovered::before {
   pointer-events: auto;
+  animation: tree-insert-line-in 200ms var(--ease-out) 150ms both;
+}
+
+/* 选中插入点后也不常驻线条（保持“只在 hover 时出现”的约定）。 */
+body .json-panel-editor .jse-insert-area.jse-selected::before {
+  animation: none !important;
+  background-size: 0 1px !important;
+}
+
+@keyframes tree-insert-line-in {
+  from {
+    background-size: 0 1px;
+  }
+  to {
+    background-size: 100% 1px;
+  }
+}
+
+/* 减少动态偏好：动画与停顿门一起去掉，线即时到位，信息不缺席。 */
+@media (prefers-reduced-motion: reduce) {
+  body .json-panel-editor .jse-insert-area.jse-hovered::before {
+    animation: none;
+    background-size: 100% 1px;
+  }
 }
 
 /* 插入点自带的动作按钮只是给 JS 触发菜单用的锚点，视觉上完全隐藏。 */
@@ -1127,6 +1241,7 @@ body .json-panel-editor .jse-context-menu-pointer.jse-insert:hover,
 body .json-panel-editor .jse-context-menu-pointer.jse-insert:focus-visible {
   opacity: 0 !important;
   pointer-events: none !important;
+  transform: none !important;
 }
 
 /* 面包屑的兄弟节点下拉：选中项不再是黑底透明字，改成浅瓷底 + 墨色字，
