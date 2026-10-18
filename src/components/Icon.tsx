@@ -11,6 +11,14 @@ const PATHS = {
   wand: 'M4 16 13 7M11.5 5.5l3 3M15 3v2.5M16.25 4.25h-2.5M5.5 4v2M6.5 5h-2',
   compare: 'M7 3.5v13M13 3.5v13M3.5 7H7M3.5 13H7M13 10h3.5',
   check: 'M4.5 10.5 8 14l7.5-8',
+  swap: 'M4 7h11.5M12.5 4l3 3-3 3M16 13H4.5M7.5 10l-3 3 3 3',
+  chevronUp: 'M5.5 12.5 10 8l4.5 4.5',
+  chevronDown: 'M5.5 7.5 10 12l4.5-4.5',
+  caret: 'M8 5.5 12.5 10 8 14.5',
+  format: 'M4 5h12M4 10h8M4 15h10',
+  import: 'M10 3.5v8M6.5 8 10 11.5 13.5 8M4 13.5V16h12v-2.5',
+  trash: 'M4.5 6h11M8 6V4.5h4V6M6 6l.7 9.5h6.6L14 6',
+  panel: 'M3.5 5.5h13v9h-13zM3.5 9h13',
 } as const
 
 export type IconName = keyof typeof PATHS

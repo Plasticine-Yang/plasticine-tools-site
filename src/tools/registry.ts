@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react'
 import DomainReplacer from './domain-replacer/DomainReplacer'
+import JsonDiffTool from './json-diff/JsonDiffTool'
 import JsonEditorTool from './json-editor/JsonEditorTool'
 
 export type ToolProps = {
@@ -27,6 +28,13 @@ export const tools: Tool[] = [
     description: '双栏编辑、转换与差异对比',
     layout: 'workspace',
     component: JsonEditorTool,
+  },
+  {
+    id: 'json-diff',
+    name: 'JSON 对比',
+    description: '按结构比较，键顺序不算差异',
+    layout: 'workspace',
+    component: JsonDiffTool,
   },
   {
     id: 'domain-replacer',

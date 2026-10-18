@@ -23,6 +23,8 @@ type Props = {
   onModeChange: (mode: Mode) => void
   onTextChange: (text: string) => void
   onClassName?: OnClassName
+  /** Hide the built-in toolbar, navigation bar and status bar for a bare text input. */
+  bare?: boolean
 }
 
 export function contentToText(content: Content): string {
@@ -50,7 +52,7 @@ function renderMenu(items: MenuItem[]): MenuItem[] {
 }
 
 const JsonPanel = forwardRef<JsonPanelHandle, Props>(function JsonPanel(
-  { initialText, mode, label, onModeChange, onTextChange, onClassName },
+  { initialText, mode, label, onModeChange, onTextChange, onClassName, bare = false },
   ref,
 ) {
   const hostRef = useRef<HTMLDivElement>(null)
@@ -68,6 +70,10 @@ const JsonPanel = forwardRef<JsonPanelHandle, Props>(function JsonPanel(
         ariaLabel: label,
         indentation: 2,
         onRenderMenu: renderMenu,
+        mainMenuBar: !bare,
+        navigationBar: !bare,
+        statusBar: !bare,
+        askToFormat: !bare,
         onChange: (content: Content) => callbacks.current.onTextChange(contentToText(content)),
         onChangeMode: (next: Mode) => callbacks.current.onModeChange(next),
       },
