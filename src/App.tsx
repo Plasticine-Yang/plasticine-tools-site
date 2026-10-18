@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Segmented from './components/Segmented'
+import { fitJsonEditorMenus } from './lib/fitJsonEditorMenus'
 import { tools } from './tools/registry'
 
 function getToolIdFromHash(): string {
@@ -15,6 +16,8 @@ export default function App() {
     window.addEventListener('hashchange', onHashChange)
     return () => window.removeEventListener('hashchange', onHashChange)
   }, [])
+
+  useEffect(() => fitJsonEditorMenus(), [])
 
   const activeIndex = Math.max(
     0,
