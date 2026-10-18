@@ -990,7 +990,11 @@ body .json-panel-editor .jse-key-outer.jse-selected-key {
 
 body .json-panel-editor .jse-key-outer:hover .jse-context-menu-pointer,
 body .json-panel-editor .jse-value-outer:hover .jse-context-menu-pointer,
-body .json-panel-editor .jse-contents:not(:has(.jse-json-node)):hover .jse-context-menu-pointer,
+body .json-panel-editor
+  .jse-json-node.jse-selected-value
+  > .jse-contents-outer
+  > .jse-contents:hover
+  .jse-context-menu-pointer,
 body .json-panel-editor .jse-header:hover .jse-context-menu-pointer {
   opacity: 1;
   pointer-events: auto;
