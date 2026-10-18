@@ -93,8 +93,9 @@ const JsonPanel = forwardRef<JsonPanelHandle, Props>(function JsonPanel(
     editorRef.current = editor
 
     // The insert line is a visual indicator in vanilla-jsoneditor; only the
-    // caret at its end can open the insert menu. Make the whole line behave
-    // like that caret, so clicking the line inserts at the indicated spot.
+    // caret at its end can open the insert menu. We keep that caret as the
+    // click anchor but hide it visually, so the hover line itself is the
+    // affordance: clicking the line behaves exactly like clicking the caret.
     const insertArea = (event: MouseEvent): Element | null => {
       const target = event.target as Element | null
       const area = target?.closest('.jse-insert-area') ?? null

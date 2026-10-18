@@ -1006,51 +1006,94 @@ body .json-panel-editor .jse-expand svg {
   display: block;
 }
 
-/* 选中只保留一层背景色，不加描边和圆角。
-   右键箭头落在内容右侧 6px 的空白处，不再压在最后一个字符上；
-   只在当前行 hover 时出现，点击后不会因为焦点残留。 */
+/* 行尾动作：点击节点后，hover 整行会浮出一个圆形加号，点它打开节点操作
+   菜单。原来的下拉三角只有 17px，且和文字之间隔着 6px 空白，鼠标移过去
+   就离开 hover 区消失了；这里把按钮放大、右移到留白处，并用 ::after 向左
+   铺一条透明命中带，从文字移到按钮的途中不会断掉 hover。 */
 body .json-panel-editor .jse-context-menu-pointer {
-  top: 2px;
-  right: -23px;
-  border-radius: 4px;
-  box-shadow: none !important;
+  top: -1px;
+  right: -30px;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--card-raised) !important;
+  box-shadow:
+    0 0 0 1px var(--hair-strong),
+    0 1px 2px rgba(30, 32, 40, 0.12) !important;
+  color: var(--ink-2);
   opacity: 0;
   pointer-events: none;
   transition:
     opacity 120ms,
-    background 120ms;
+    background 120ms,
+    box-shadow 120ms,
+    color 120ms;
+}
+
+body .json-panel-editor .jse-context-menu-pointer::after {
+  /* 只覆盖文字与按钮之间的 6px 空隙，不要压到值上，否则点击值末尾
+     会误触这个按钮。 */
+  content: '';
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  left: -6px;
+  width: 6px;
+}
+
+body .json-panel-editor .jse-context-menu-pointer .fa-icon {
+  display: none;
+}
+
+body .json-panel-editor .jse-context-menu-pointer::before {
+  content: '+';
+  font: 500 15px/1 var(--sans);
+  transform: translateY(-0.5px);
 }
 
 body .json-panel-editor .jse-key-outer.jse-selected-key {
-  /* 选中键时让箭头相对整行内容定位，避免落在冒号上。 */
+  /* 选中键时让按钮相对整行内容定位，避免落在冒号上。 */
   position: static;
 }
 
-/* 让行内容成为箭头定位的参照：选中键时箭头会落到整行内容（键 + 值）右侧。 */
+/* 让行内容成为按钮定位的参照：选中键时按钮会落到整行内容（键 + 值）右侧。 */
 body .json-panel-editor .jse-tree-mode .jse-contents {
   position: relative;
 }
 
 body .json-panel-editor .jse-key-outer:hover .jse-context-menu-pointer,
 body .json-panel-editor .jse-value-outer:hover .jse-context-menu-pointer,
-body .json-panel-editor
-  .jse-json-node.jse-selected-value
-  > .jse-contents-outer
-  > .jse-contents:hover
-  .jse-context-menu-pointer,
-body .json-panel-editor .jse-header:hover .jse-context-menu-pointer {
+body .json-panel-editor .jse-contents:hover .jse-context-menu-pointer,
+body .json-panel-editor .jse-header:hover .jse-context-menu-pointer,
+body .json-panel-editor .jse-context-menu-pointer:hover,
+body .json-panel-editor .jse-context-menu-pointer:focus-visible {
   opacity: 1;
   pointer-events: auto;
 }
 
-/* 插入点：整条线就是“插入到这里”的点击目标，线尾的加号是可见的动作。
-   线只在库的插入触发区被 hover 时出现；这里把线拉满编辑区，加号固定在
-   右侧留白，避免压住值；再补一条 16px 高的透明命中带，鼠标停在线上时
-   不会因为离开原来的触发区而消失。 */
+body .json-panel-editor .jse-context-menu-pointer:not(.jse-insert):hover {
+  background: var(--well) !important;
+  color: var(--ink);
+  box-shadow:
+    0 0 0 1px var(--ink-4),
+    0 2px 6px rgba(30, 32, 40, 0.16) !important;
+}
+
+/* 插入点：整条线只在 hover 时出现，用来提示“插入到这里”；点击整条线仍会
+   打开插入菜单，但不再在末端挂一个加号（加号只留给行尾的节点操作）。
+   选中插入点后库会把这条线常驻在 DOM 里，所以除 hover 外一律透明；
+   16px 高的透明命中带只在 hover 时接管鼠标，避免点击后残留的命中区
+   挡住其它行。 */
 body .json-panel-editor .jse-insert-area {
   max-width: none !important;
   margin-right: 30px !important;
   z-index: 4;
+  outline-color: transparent !important;
 }
 
 body .json-panel-editor .jse-insert-area::before {
@@ -1061,53 +1104,29 @@ body .json-panel-editor .jse-insert-area::before {
   left: -8px;
   height: 16px;
   cursor: pointer;
+  pointer-events: none;
 }
 
+body .json-panel-editor .jse-insert-area.jse-selected {
+  outline-color: transparent !important;
+}
+
+/* 放在 .jse-selected 之后：点击后插入点同时带 hovered + selected，
+   仍然以 hover 为准显示这条线，鼠标离开后 selected 才生效。 */
 body .json-panel-editor .jse-insert-area.jse-hovered {
   outline-color: var(--ink-4) !important;
 }
 
-body .json-panel-editor .jse-insert-area.jse-selected {
-  outline-color: var(--ink-3) !important;
-}
-
-body .json-panel-editor .jse-context-menu-pointer.jse-insert {
-  top: -12px;
-  right: -12px;
-  width: 24px;
-  height: 24px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: var(--card-raised);
-  box-shadow:
-    0 0 0 1px var(--hair-strong),
-    0 1px 2px rgba(30, 32, 40, 0.12) !important;
-  color: var(--ink-2);
-  opacity: 1;
+body .json-panel-editor .jse-insert-area.jse-hovered::before {
   pointer-events: auto;
 }
 
-body .json-panel-editor .jse-insert .fa-icon {
-  display: none;
-}
-
-body .json-panel-editor .jse-insert::before {
-  content: '+';
-  font: 500 15px/1 var(--sans);
-  transform: translateY(-0.5px);
-}
-
-body .json-panel-editor .jse-insert:hover,
-body .json-panel-editor .jse-insert:focus-visible {
-  background: var(--well);
-  color: var(--ink);
-  box-shadow:
-    0 0 0 1px var(--ink-4),
-    0 2px 6px rgba(30, 32, 40, 0.16) !important;
+/* 插入点自带的动作按钮只是给 JS 触发菜单用的锚点，视觉上完全隐藏。 */
+body .json-panel-editor .jse-context-menu-pointer.jse-insert,
+body .json-panel-editor .jse-context-menu-pointer.jse-insert:hover,
+body .json-panel-editor .jse-context-menu-pointer.jse-insert:focus-visible {
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 /* 面包屑的兄弟节点下拉：选中项不再是黑底透明字，改成浅瓷底 + 墨色字，
