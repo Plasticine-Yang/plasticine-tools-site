@@ -47,9 +47,6 @@ export default function App() {
     <div className={`app app-${active.layout}`}>
       <header className="topbar">
         <a className="brand" href="#/" aria-label="Plasticine Tools 首页">
-          <span className="brand-mark" aria-hidden="true">
-            P
-          </span>
           <span className="brand-name">Plasticine Tools</span>
         </a>
 
