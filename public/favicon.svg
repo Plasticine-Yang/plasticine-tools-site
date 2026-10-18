@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Plasticine Tools">
   <title>Plasticine Tools</title>
-  <rect width="64" height="64" rx="13" fill="#efe7d2" />
-  <circle cx="32" cy="32" r="20.5" fill="none" stroke="#15140f" stroke-width="3.6" />
+  <rect width="64" height="64" rx="13" fill="#f6f6f8" />
+  <circle cx="32" cy="32" r="20.5" fill="none" stroke="#2a2a2d" stroke-width="3.6" />
   <text
     x="31.5"
     y="32.5"
@@ -11,6 +11,6 @@
     font-style="italic"
     font-weight="600"
     font-size="28"
-    fill="#15140f"
+    fill="#2a2a2d"
   >P</text>
 </svg>
