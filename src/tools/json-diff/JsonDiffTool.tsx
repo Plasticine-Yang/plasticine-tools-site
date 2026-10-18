@@ -9,6 +9,7 @@ import type { ArrayMode, DiffEntry, DiffOptions } from './engine'
 import { ancestorPaths, buildRows } from './rows'
 import type { Cell, Row } from './rows'
 import { DIFF_SAMPLE_LEFT, DIFF_SAMPLE_RIGHT } from './samples'
+import { SAMPLE_LEFT, SAMPLE_RIGHT } from '../json-editor/samples'
 
 type Side = 'left' | 'right'
 
@@ -36,9 +37,18 @@ const STATUS_LABEL: Record<DiffEntry['status'], string> = {
   removed: '删除',
 }
 
-function readStorage(key: string, fallback: string) {
+// 旧版本首次访问会写入示例。这里只用来识别并清掉老副本。
+const LEGACY_SAMPLES = new Set([DIFF_SAMPLE_LEFT, DIFF_SAMPLE_RIGHT, SAMPLE_LEFT, SAMPLE_RIGHT])
+
+function readStorage(key: string, fallback = '') {
   try {
-    return window.localStorage.getItem(key) ?? fallback
+    const stored = window.localStorage.getItem(key)
+    if (!stored) return fallback
+    if (LEGACY_SAMPLES.has(stored)) {
+      window.localStorage.removeItem(key)
+      return ''
+    }
+    return stored
   } catch {
     return fallback
   }
@@ -87,8 +97,8 @@ const MARK: Record<string, string> = { changed: '~', added: '+', removed: '−' 
 
 export default function JsonDiffTool() {
   const [texts, setTexts] = useState<Record<Side, string>>(() => ({
-    left: readStorage(TEXT_KEY.left, DIFF_SAMPLE_LEFT),
-    right: readStorage(TEXT_KEY.right, DIFF_SAMPLE_RIGHT),
+    left: readStorage(TEXT_KEY.left),
+    right: readStorage(TEXT_KEY.right),
   }))
   const [options, setOptions] = useLocalStorage<DiffOptions>('json-diff:options', {
     arrayMode: 'key',

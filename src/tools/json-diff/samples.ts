@@ -1,6 +1,6 @@
 /**
- * Two revisions of the same report config. The right side reorders keys and
- * array items on purpose: only the real edits should show up as differences.
+ * 旧版本首次访问时写入 localStorage 的示例。现在不再自动载入，
+ * 仅用于识别并清除已经存在的老副本。
  */
 export const DIFF_SAMPLE_LEFT = JSON.stringify(
   {

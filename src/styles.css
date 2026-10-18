@@ -612,7 +612,11 @@ textarea {
   overflow: visible;
 }
 
-.doc-body .jse-contents,
+/* 只给最外层的编辑面收底角。树里的每个节点也有 .jse-contents，
+   如果一起收角，选中一行就会变成一块大圆角。 */
+.doc-body .jse-tree-mode > .jse-contents,
+.doc-body .jse-text-mode > .jse-contents,
+.doc-body .jse-table-mode > .jse-contents,
 .doc-body .jse-status-bar:last-child {
   border-bottom-left-radius: var(--radius-card);
   border-bottom-right-radius: var(--radius-card);
@@ -965,9 +969,11 @@ body .json-panel-editor .jse-expand svg {
 }
 
 /* 选中只保留一层背景色，不加描边和圆角。
-   行内右键箭头只在整行 hover 时出现，不挡住冒号，也不给选中态添装饰。 */
+   右键箭头落在内容右侧 6px 的空白处，不再压在最后一个字符上；
+   只在当前行 hover 时出现，点击后不会因为焦点残留。 */
 body .json-panel-editor .jse-context-menu-pointer {
   top: 2px;
+  right: -23px;
   border-radius: 4px;
   box-shadow: none !important;
   opacity: 0;
@@ -977,8 +983,15 @@ body .json-panel-editor .jse-context-menu-pointer {
     background 120ms;
 }
 
-body .json-panel-editor .jse-json-node:hover .jse-context-menu-pointer,
-body .json-panel-editor .jse-context-menu-pointer:focus-visible {
+body .json-panel-editor .jse-key-outer.jse-selected-key {
+  /* 选中键时让箭头相对整行 header 定位，避免落在冒号上。 */
+  position: static;
+}
+
+body .json-panel-editor .jse-key-outer:hover .jse-context-menu-pointer,
+body .json-panel-editor .jse-value-outer:hover .jse-context-menu-pointer,
+body .json-panel-editor .jse-contents:not(:has(.jse-json-node)):hover .jse-context-menu-pointer,
+body .json-panel-editor .jse-header:hover .jse-context-menu-pointer {
   opacity: 1;
   pointer-events: auto;
 }

@@ -24,9 +24,19 @@ const TEXT_KEY: Record<Side, string> = {
   right: 'plasticine-tools:json-editor:right-text',
 }
 
-function readText(side: Side, fallback: string) {
+// 旧版本首次访问会写入一份示例。这里只用来识别并清掉那份副本，
+// 新装/清空缓存后打开的是一张真正的空文档。
+const LEGACY_SAMPLES = new Set([SAMPLE_LEFT, SAMPLE_RIGHT])
+
+function readText(side: Side, fallback = '') {
   try {
-    return window.localStorage.getItem(TEXT_KEY[side]) ?? fallback
+    const stored = window.localStorage.getItem(TEXT_KEY[side])
+    if (!stored) return fallback
+    if (LEGACY_SAMPLES.has(stored)) {
+      window.localStorage.removeItem(TEXT_KEY[side])
+      return ''
+    }
+    return stored
   } catch {
     return fallback
   }
@@ -57,8 +67,8 @@ export default function JsonEditorTool() {
     right: { name: '对照数据', mode: Mode.tree },
   })
   const [texts, setTexts] = useState<Record<Side, string>>(() => ({
-    left: readText('left', SAMPLE_LEFT),
-    right: readText('right', SAMPLE_RIGHT),
+    left: readText('left'),
+    right: readText('right'),
   }))
   const [comparing, setComparing] = useState(false)
   const [maximized, setMaximized] = useState<Side | null>(null)
