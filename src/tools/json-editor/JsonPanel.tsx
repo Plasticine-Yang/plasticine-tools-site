@@ -27,8 +27,14 @@ type Props = {
   bare?: boolean
 }
 
-export function contentToText(content: Content): string {
+/**
+ * The editor reports `{ json: undefined }` while an insertion is being
+ * committed (the value does not exist yet). That is not a document, so give
+ * callers `undefined` instead of letting `JSON.stringify` return it.
+ */
+export function contentToText(content: Content): string | undefined {
   if ('text' in content) return content.text
+  if (content.json === undefined) return undefined
   return JSON.stringify(content.json, null, 2)
 }
 
@@ -61,9 +67,10 @@ const JsonPanel = forwardRef<JsonPanelHandle, Props>(function JsonPanel(
   callbacks.current = { onModeChange, onTextChange }
 
   useEffect(() => {
-    if (!hostRef.current) return
+    const host = hostRef.current
+    if (!host) return
     const editor = createJSONEditor({
-      target: hostRef.current,
+      target: host,
       props: {
         content: { text: initialText },
         mode,
@@ -74,12 +81,46 @@ const JsonPanel = forwardRef<JsonPanelHandle, Props>(function JsonPanel(
         navigationBar: !bare,
         statusBar: !bare,
         askToFormat: !bare,
-        onChange: (content: Content) => callbacks.current.onTextChange(contentToText(content)),
+        onChange: (content: Content) => {
+          const text = contentToText(content)
+          // Insertion can report an undefined document for a tick; keep the
+          // last valid text instead of blanking the panel.
+          if (text !== undefined) callbacks.current.onTextChange(text)
+        },
         onChangeMode: (next: Mode) => callbacks.current.onModeChange(next),
       },
     })
     editorRef.current = editor
+
+    // The insert line is a visual indicator in vanilla-jsoneditor; only the
+    // caret at its end can open the insert menu. Make the whole line behave
+    // like that caret, so clicking the line inserts at the indicated spot.
+    const insertArea = (event: MouseEvent): Element | null => {
+      const target = event.target as Element | null
+      const area = target?.closest('.jse-insert-area') ?? null
+      if (!area) return null
+      // The caret has its own handler; let it through untouched.
+      if (target?.closest('.jse-context-menu-pointer')) return null
+      return area
+    }
+    const onInsertMouseDown = (event: MouseEvent) => {
+      if (event.button !== 0 || !insertArea(event)) return
+      event.preventDefault()
+      event.stopPropagation()
+    }
+    const onInsertClick = (event: MouseEvent) => {
+      const area = insertArea(event)
+      if (!area) return
+      event.preventDefault()
+      event.stopPropagation()
+      area.querySelector<HTMLButtonElement>('.jse-context-menu-pointer')?.click()
+    }
+    host.addEventListener('mousedown', onInsertMouseDown, true)
+    host.addEventListener('click', onInsertClick, true)
+
     return () => {
+      host.removeEventListener('mousedown', onInsertMouseDown, true)
+      host.removeEventListener('click', onInsertClick, true)
       editorRef.current = null
       void editor.destroy()
     }
@@ -101,7 +142,7 @@ const JsonPanel = forwardRef<JsonPanelHandle, Props>(function JsonPanel(
   useImperativeHandle(
     ref,
     () => ({
-      getText: () => (editorRef.current ? contentToText(editorRef.current.get()) : ''),
+      getText: () => (editorRef.current ? (contentToText(editorRef.current.get()) ?? '') : ''),
       getJson: () => (editorRef.current ? contentToJson(editorRef.current.get()) : undefined),
       setText: (text) => {
         editorRef.current?.set({ text })

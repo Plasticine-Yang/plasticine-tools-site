@@ -790,6 +790,44 @@ textarea {
   color: var(--ink-2) !important;
 }
 
+/* 文本模式的折叠箭头：库自带的是 ⌄ / › 两个字形，在等宽字体里一个偏扁、
+   一个偏细。这里换成更克制的细线雪佛龙，并给箭头留出 16px 的独立栏位；
+   原来的 8px 会让箭头贴着行号，看起来像一串杂点。 */
+.json-panel-editor .cm-foldGutter .cm-gutterElement span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 22px;
+  padding: 0;
+  border-radius: 5px;
+  font-size: 0;
+  color: transparent;
+  vertical-align: top;
+  transition: background 120ms;
+}
+
+.json-panel-editor .cm-foldGutter .cm-gutterElement span::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-right: 1.5px solid var(--ink-4);
+  border-bottom: 1.5px solid var(--ink-4);
+  transform: translateY(-1.5px) rotate(45deg);
+}
+
+.json-panel-editor .cm-foldGutter .cm-gutterElement span[title='Unfold line']::before {
+  transform: translateX(-1px) rotate(-45deg);
+}
+
+.json-panel-editor .cm-foldGutter .cm-gutterElement span:hover {
+  background: rgba(29, 29, 31, 0.06);
+}
+
+.json-panel-editor .cm-foldGutter .cm-gutterElement span:hover::before {
+  border-color: var(--ink-2);
+}
+
 .json-panel-editor .jse-status-bar {
   padding: 6px 14px;
   font-size: 12px;
@@ -1003,6 +1041,73 @@ body .json-panel-editor
 body .json-panel-editor .jse-header:hover .jse-context-menu-pointer {
   opacity: 1;
   pointer-events: auto;
+}
+
+/* 插入点：整条线就是“插入到这里”的点击目标，线尾的加号是可见的动作。
+   线只在库的插入触发区被 hover 时出现；这里把线拉满编辑区，加号固定在
+   右侧留白，避免压住值；再补一条 16px 高的透明命中带，鼠标停在线上时
+   不会因为离开原来的触发区而消失。 */
+body .json-panel-editor .jse-insert-area {
+  max-width: none !important;
+  margin-right: 30px !important;
+  z-index: 4;
+}
+
+body .json-panel-editor .jse-insert-area::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  left: -8px;
+  height: 16px;
+  cursor: pointer;
+}
+
+body .json-panel-editor .jse-insert-area.jse-hovered {
+  outline-color: var(--ink-4) !important;
+}
+
+body .json-panel-editor .jse-insert-area.jse-selected {
+  outline-color: var(--ink-3) !important;
+}
+
+body .json-panel-editor .jse-context-menu-pointer.jse-insert {
+  top: -12px;
+  right: -12px;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--card-raised);
+  box-shadow:
+    0 0 0 1px var(--hair-strong),
+    0 1px 2px rgba(30, 32, 40, 0.12) !important;
+  color: var(--ink-2);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+body .json-panel-editor .jse-insert .fa-icon {
+  display: none;
+}
+
+body .json-panel-editor .jse-insert::before {
+  content: '+';
+  font: 500 15px/1 var(--sans);
+  transform: translateY(-0.5px);
+}
+
+body .json-panel-editor .jse-insert:hover,
+body .json-panel-editor .jse-insert:focus-visible {
+  background: var(--well);
+  color: var(--ink);
+  box-shadow:
+    0 0 0 1px var(--ink-4),
+    0 2px 6px rgba(30, 32, 40, 0.16) !important;
 }
 
 /* 面包屑的兄弟节点下拉：选中项不再是黑底透明字，改成浅瓷底 + 墨色字，
