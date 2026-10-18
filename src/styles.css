@@ -92,10 +92,10 @@
   --jse-context-menu-color: var(--ink);
   --jse-context-menu-color-disabled: var(--ink-4);
   --jse-context-menu-separator-color: var(--hair);
-  --jse-context-menu-pointer-background: var(--primary);
-  --jse-context-menu-pointer-background-highlight: #000;
-  --jse-context-menu-pointer-hover-background: var(--ink-4);
-  --jse-context-menu-pointer-color: #fff;
+  --jse-context-menu-pointer-background: transparent;
+  --jse-context-menu-pointer-background-highlight: rgba(29, 29, 31, 0.08);
+  --jse-context-menu-pointer-hover-background: rgba(29, 29, 31, 0.06);
+  --jse-context-menu-pointer-color: var(--ink-3);
   --jse-context-menu-tip-background: var(--well);
   --jse-context-menu-tip-color: var(--ink-3);
   --jse-controls-box-shadow: var(--shadow-pop);
@@ -964,16 +964,23 @@ body .json-panel-editor .jse-expand svg {
   display: block;
 }
 
-/* 选中键/值时给一层冷调薄雾，圆角收边，比整块矩形干净。
-   行内的右键入口小方块会压住冒号，右键与 Ctrl+Q 已能到达同一个菜单。 */
-body .json-panel-editor .jse-selected-key,
-body .json-panel-editor .jse-selected-value {
-  border-radius: 6px;
-  box-shadow: inset 0 0 0 1px var(--select-line);
+/* 选中只保留一层背景色，不加描边和圆角。
+   行内右键箭头只在整行 hover 时出现，不挡住冒号，也不给选中态添装饰。 */
+body .json-panel-editor .jse-context-menu-pointer {
+  top: 2px;
+  border-radius: 4px;
+  box-shadow: none !important;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 120ms,
+    background 120ms;
 }
 
-body .json-panel-editor .jse-context-menu-pointer {
-  display: none !important;
+body .json-panel-editor .jse-json-node:hover .jse-context-menu-pointer,
+body .json-panel-editor .jse-context-menu-pointer:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* 面包屑的兄弟节点下拉：选中项不再是黑底透明字，改成浅瓷底 + 墨色字，
@@ -981,6 +988,7 @@ body .json-panel-editor .jse-context-menu-pointer {
 body .json-panel-editor .jse-navigation-bar-dropdown {
   min-width: 150px;
   padding: 6px;
+  gap: 6px;
   border-radius: 12px;
   background: #fff;
   box-shadow: var(--shadow-pop) !important;
@@ -994,7 +1002,7 @@ body .json-panel-editor .jse-navigation-bar-dropdown button.jse-navigation-bar-d
   gap: 12px;
   height: 32px;
   padding: 0 10px !important;
-  border-radius: 7px;
+  border-radius: 4px;
   font-family: var(--mono);
   font-size: 12.5px;
   color: var(--ink-2);
