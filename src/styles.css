@@ -984,8 +984,13 @@ body .json-panel-editor .jse-context-menu-pointer {
 }
 
 body .json-panel-editor .jse-key-outer.jse-selected-key {
-  /* 选中键时让箭头相对整行 header 定位，避免落在冒号上。 */
+  /* 选中键时让箭头相对整行内容定位，避免落在冒号上。 */
   position: static;
+}
+
+/* 让行内容成为箭头定位的参照：选中键时箭头会落到整行内容（键 + 值）右侧。 */
+body .json-panel-editor .jse-tree-mode .jse-contents {
+  position: relative;
 }
 
 body .json-panel-editor .jse-key-outer:hover .jse-context-menu-pointer,
