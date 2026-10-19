@@ -87,17 +87,56 @@ function localizeSuccessBanner(root: HTMLElement) {
   }
 }
 
-/** Skip the many mutations CodeMirror makes outside the banner. */
-function touchesBanner(record: MutationRecord): boolean {
+/** Skip the many mutations CodeMirror makes outside localizable copy. */
+function touchesLocalizableCopy(record: MutationRecord): boolean {
   const target = record.target
   const element = target instanceof Element ? target : target.parentElement
-  if (element?.closest('.jse-message')) return true
+  if (element?.closest('.jse-message, .jse-tooltip')) return true
   if (record.type !== 'childList') return false
   return [...record.addedNodes].some(
     (node) =>
       node instanceof Element &&
-      (node.matches('.jse-message') || node.querySelector('.jse-message') !== null),
+      (node.matches('.jse-message, .jse-tooltip') ||
+        node.querySelector('.jse-message, .jse-tooltip') !== null),
   )
+}
+
+/**
+ * The timestamp tooltip comes straight from `Date.toString()`:
+ * "Time: Mon Oct 19 2026 10:37:18 GMT+0800 (China Standard Time)".
+ * Show just the instant in China time as `YYYY-MM-DD HH:mm:ss`.
+ */
+const TIMESTAMP_TOOLTIP = /^Time:\s*(.+)$/
+const CHINA_TIME = new Intl.DateTimeFormat('zh-CN', {
+  timeZone: 'Asia/Shanghai',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  hourCycle: 'h23',
+})
+
+function formatTimestampTooltip(text: string): string | undefined {
+  const match = TIMESTAMP_TOOLTIP.exec(text)
+  if (!match) return undefined
+  const time = new Date(match[1])
+  if (Number.isNaN(time.getTime())) return undefined
+  const parts = CHINA_TIME.formatToParts(time)
+  const part = (type: string) => parts.find((item) => item.type === type)?.value ?? ''
+  return `${part('year')}-${part('month')}-${part('day')} ${part('hour')}:${part('minute')}:${part('second')}`
+}
+
+function localizeTimestampTooltips(root: HTMLElement) {
+  for (const tooltip of root.querySelectorAll<HTMLElement>('.jse-tooltip')) {
+    const text = tooltip.textContent ?? ''
+    const formatted = formatTimestampTooltip(text)
+    if (!formatted || formatted === text) continue
+    const textNode = [...tooltip.childNodes].find((node) => node.nodeType === Node.TEXT_NODE)
+    if (textNode) textNode.nodeValue = formatted
+    else tooltip.textContent = formatted
+  }
 }
 
 /** The mode switch lives in our own panel header, so drop the built-in one. */
@@ -186,17 +225,18 @@ const JsonPanel = forwardRef<JsonPanelHandle, Props>(function JsonPanel(
     const host = hostRef.current
     if (!host) return
     let queued = false
-    const translate = () => {
+    const localize = () => {
       queued = false
       localizeSuccessBanner(host)
+      localizeTimestampTooltips(host)
     }
     const observer = new MutationObserver((records) => {
-      if (queued || !records.some(touchesBanner)) return
+      if (queued || !records.some(touchesLocalizableCopy)) return
       queued = true
-      queueMicrotask(translate)
+      queueMicrotask(localize)
     })
     observer.observe(host, { subtree: true, childList: true, characterData: true })
-    translate()
+    localize()
     return () => observer.disconnect()
   }, [])
 
