@@ -1836,6 +1836,19 @@ dialog.jse-modal .jse-tag {
   line-height: 18px;
 }
 
+/* 时间戳：库在数值里留了一个尾随空格，而时钟图标是数值外的兄弟节点，
+   这段空格会把 hover 胶囊的右内边距撑成一个字符宽。收起空格，左右各留 5px。 */
+body .json-panel-editor .jse-value-outer:has(> .jse-timestamp) > .jse-value {
+  white-space: normal;
+}
+
+/* 时钟图标默认走 flex 的 stretch，会贴在 22px 行高的顶部；把它放到行中。 */
+body .json-panel-editor .jse-timestamp {
+  align-items: center;
+  justify-content: center;
+  margin-left: 4px;
+}
+
 /* 差异标记 */
 .json-panel-editor .diff-changed {
   background: rgba(212, 165, 20, 0.16) !important;
