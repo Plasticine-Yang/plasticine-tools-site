@@ -47,6 +47,59 @@ export function contentToJson(content: Content): unknown | undefined {
   }
 }
 
+/**
+ * vanilla-jsoneditor has no i18n hook and hard-codes its banner copy in
+ * English. The green success banner is the only transient message this panel
+ * shows, so translate it in place and re-apply whenever Svelte re-renders it.
+ */
+const SUCCESS_TEXT: Record<string, string> = {
+  'Do you want to format the JSON?': '要格式化这段 JSON 吗？',
+  'The loaded JSON document was invalid but is successfully repaired.':
+    '这段 JSON 原本不合法，已自动修复。',
+  Format: '格式化',
+  'No thanks': '不用了',
+  Ok: '确定',
+  'Repair manually instead': '改为手动修复',
+}
+
+const SUCCESS_TITLES: Record<string, string> = {
+  'Format JSON: add proper indentation and new lines (Ctrl+I)':
+    '格式化 JSON：补齐缩进与换行（Ctrl+I）',
+  'Close this message': '关闭提示',
+  'Accept the repaired document': '接受修复后的文档',
+  'Leave the document unchanged and repair it manually instead': '保留原文档，改为手动修复',
+}
+
+function localizeSuccessBanner(root: HTMLElement) {
+  for (const banner of root.querySelectorAll<HTMLElement>('.jse-message.jse-success')) {
+    const walker = document.createTreeWalker(banner, NodeFilter.SHOW_TEXT)
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      const value = node.nodeValue ?? ''
+      const trimmed = value.trim()
+      const translated = SUCCESS_TEXT[trimmed]
+      if (translated && translated !== trimmed) node.nodeValue = value.replace(trimmed, translated)
+    }
+    for (const element of banner.querySelectorAll<HTMLElement>('[title]')) {
+      const title = element.getAttribute('title') ?? ''
+      const translated = SUCCESS_TITLES[title]
+      if (translated) element.setAttribute('title', translated)
+    }
+  }
+}
+
+/** Skip the many mutations CodeMirror makes outside the banner. */
+function touchesBanner(record: MutationRecord): boolean {
+  const target = record.target
+  const element = target instanceof Element ? target : target.parentElement
+  if (element?.closest('.jse-message')) return true
+  if (record.type !== 'childList') return false
+  return [...record.addedNodes].some(
+    (node) =>
+      node instanceof Element &&
+      (node.matches('.jse-message') || node.querySelector('.jse-message') !== null),
+  )
+}
+
 /** The mode switch lives in our own panel header, so drop the built-in one. */
 function renderMenu(items: MenuItem[]): MenuItem[] {
   const withoutModes = items.filter(
@@ -127,6 +180,24 @@ const JsonPanel = forwardRef<JsonPanelHandle, Props>(function JsonPanel(
     }
     // The editor owns its content after mount; later props are pushed via updateProps.
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    const host = hostRef.current
+    if (!host) return
+    let queued = false
+    const translate = () => {
+      queued = false
+      localizeSuccessBanner(host)
+    }
+    const observer = new MutationObserver((records) => {
+      if (queued || !records.some(touchesBanner)) return
+      queued = true
+      queueMicrotask(translate)
+    })
+    observer.observe(host, { subtree: true, childList: true, characterData: true })
+    translate()
+    return () => observer.disconnect()
   }, [])
 
   useEffect(() => {

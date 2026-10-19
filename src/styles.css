@@ -837,18 +837,42 @@ textarea {
 }
 
 .json-panel-editor .jse-message {
-  margin: 10px 12px 0;
+  /* 底部留白，提示条浮在卡片里而不是贴死底边。 */
+  margin: 10px 12px 12px;
   border-radius: 14px;
   font-family: var(--sans);
   font-size: 13px;
   padding: 8px 8px 8px 14px;
 }
 
+/* 库把提示文案声明成等宽字体，且选择器权重更高；改回界面字体。 */
+.json-panel-editor .jse-message .jse-text {
+  font-family: var(--sans);
+}
+
+.json-panel-editor .jse-message .jse-actions {
+  align-items: center;
+}
+
+/* 库里的按钮是「图标 + 空格 + 文字」的基线排版，图标会偏高。
+   改成 flex 居中，并给图标和文字之间一个固定间距。 */
 .json-panel-editor .jse-message .jse-actions button,
 .json-panel-editor .jse-message .jse-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 14px !important;
   border-radius: var(--radius-ctl) !important;
   font-family: var(--sans);
-  padding: 4px 14px !important;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.json-panel-editor .jse-message .jse-actions button svg {
+  display: block;
+  flex: none;
 }
 
 /* 修复提示条里的「Ok / 手动修复」在库里都带 primary 类，
