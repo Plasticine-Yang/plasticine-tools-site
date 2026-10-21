@@ -1323,7 +1323,9 @@ div.jse-search-box {
 }
 
 div.jse-search-box .jse-search-form {
-  align-items: center;
+  /* 库里的同名规则用 `stretch` 且选择器权重更高，26px 的图标按钮会被顶到
+     30px 行的上沿。强制居中，整行图标才和输入框齐平。 */
+  align-items: center !important;
   gap: 4px;
   padding: 5px 6px;
 }
@@ -1340,8 +1342,12 @@ div.jse-search-box .jse-replace-toggle {
   height: 26px;
   margin: 0;
   padding: 0 !important;
-  display: grid;
+  /* 库里的 `.jse-search-form button` 会把按钮设成 display:block，
+     行内 SVG 便按 baseline 排版，三角图标因此整体偏高。这里强制 grid
+     居中并清掉 line-height，让图标在按钮里真正居中。 */
+  display: grid !important;
   place-items: center;
+  line-height: 0;
   border-radius: 7px;
   background: transparent !important;
   color: var(--ink-4) !important;
@@ -1357,10 +1363,15 @@ div.jse-search-box .jse-replace-toggle:hover {
 
 div.jse-search-box .jse-search-icon {
   width: 24px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
   color: var(--ink-4);
 }
 
 div.jse-search-box .jse-search-icon svg {
+  display: block;
   width: 14px;
   height: 14px;
 }
@@ -1407,8 +1418,9 @@ div.jse-search-box .jse-search-clear {
   width: 26px;
   height: 26px;
   padding: 0 !important;
-  display: grid;
+  display: grid !important;
   place-items: center;
+  line-height: 0;
   border-radius: 7px;
   background: transparent;
   color: var(--ink-3) !important;
