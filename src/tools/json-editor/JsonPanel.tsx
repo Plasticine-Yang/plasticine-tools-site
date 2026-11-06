@@ -1,6 +1,6 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
-import { createJSONEditor, Mode } from 'vanilla-jsoneditor'
-import type { Content, JsonEditor, MenuItem, OnClassName } from 'vanilla-jsoneditor'
+import { createJSONEditor, isTimestamp, Mode, renderValue, TimestampTag } from 'vanilla-jsoneditor'
+import type { Content, JsonEditor, MenuItem, OnClassName, OnRenderValue } from 'vanilla-jsoneditor'
 
 export { Mode }
 
@@ -139,6 +139,44 @@ function localizeTimestampTooltips(root: HTMLElement) {
   }
 }
 
+/**
+ * The library only flags a timestamp when the value itself is a number of
+ * milliseconds (`isTimestamp`). Payloads pasted in this tool often carry the
+ * same instant as a numeric string — `"from": "1764518400000"` — or in seconds,
+ * and those silently lose the clock. Treat a 10- or 13-digit integer (string or
+ * number) as seconds / milliseconds inside the same 2000–2100 window the
+ * library uses, so short counters and ids stay plain.
+ */
+const SECONDS_PATTERN = /^\d{10}$/
+const MILLIS_PATTERN = /^\d{13}$/
+const MILLIS_MIN = 946684800000 // 2000-01-01T00:00:00Z
+const MILLIS_MAX = 4102444800000 // 2100-01-01T00:00:00Z
+
+function timestampMillis(value: unknown): number | undefined {
+  const text = typeof value === 'string' ? value : typeof value === 'number' ? String(value) : ''
+  const time = MILLIS_PATTERN.test(text)
+    ? Number(text)
+    : SECONDS_PATTERN.test(text)
+      ? Number(text) * 1000
+      : NaN
+  if (!Number.isFinite(time) || time < MILLIS_MIN || time >= MILLIS_MAX) return undefined
+  return time
+}
+
+/**
+ * Reuse the library's own clock tag — it already renders `.jse-timestamp` and
+ * opens the `Time: …` tooltip that `localizeTimestampTooltips` rewrites — and
+ * feed it the millisecond value of string/second timestamps.
+ */
+const onRenderValue: OnRenderValue = (props) => {
+  const renderers = renderValue(props)
+  if (props.isEditing || isTimestamp(props.value)) return renderers
+  const time = timestampMillis(props.value)
+  if (time === undefined) return renderers
+  renderers.push({ component: TimestampTag, props: { ...props, value: time } })
+  return renderers
+}
+
 /** The mode switch lives in our own panel header, so drop the built-in one. */
 function renderMenu(items: MenuItem[]): MenuItem[] {
   const withoutModes = items.filter(
@@ -169,6 +207,7 @@ const JsonPanel = forwardRef<JsonPanelHandle, Props>(function JsonPanel(
         ariaLabel: label,
         indentation: 2,
         onRenderMenu: renderMenu,
+        onRenderValue,
         mainMenuBar: !bare,
         navigationBar: !bare,
         statusBar: !bare,
